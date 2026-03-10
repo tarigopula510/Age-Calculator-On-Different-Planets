@@ -1,1 +1,265 @@
 # Age-Calculator-On-Different-Planets
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Age On Different Planets Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #0c0c2f 0%, #1a1a4d 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: #333;
+        }
+        .header {
+            background: linear-gradient(90deg, #1e3c72, #2a5298);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        .header h1 {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        .input-section {
+            background: white;
+            padding: 2rem;
+            margin: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .input-group {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+        label {
+            font-weight: bold;
+            font-size: 1.1rem;
+            min-width: 250px;
+        }
+        input[type="date"] {
+            padding: 0.75rem;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        input[type="date"]:focus {
+            outline: none;
+            border-color: #2a5298;
+        }
+        button {
+            background: linear-gradient(90deg, #2a5298, #1e3c72);
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(42,82,152,0.4);
+        }
+        .results-section {
+            margin: 2rem;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            font-size: 0.95rem;
+        }
+        th {
+            background: linear-gradient(90deg, #2a5298, #1e3c72);
+            color: white;
+            padding: 1.2rem 1rem;
+            text-align: left;
+            font-weight: bold;
+        }
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+        tr:nth-child(even) {
+            background: #f8f9ff;
+        }
+        tr:hover {
+            background: #e3f2fd;
+        }
+        .planet-mercury { border-left: 4px solid #8c7853; }
+        .planet-venus { border-left: 4px solid #ffc649; }
+        .planet-earth { border-left: 4px solid #4a90e2; }
+        .planet-mars { border-left: 4px solid #cd5c5c; }
+        .planet-jupiter { border-left: 4px solid #d8ca9d; }
+        .planet-saturn { border-left: 4px solid #fadb14; }
+        .planet-uranus { border-left: 4px solid #4fd0e3; }
+        .planet-neptune { border-left: 4px solid #4b70dd; }
+        .footer {
+            background: rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.9);
+            text-align: center;
+            padding: 2rem;
+            margin-top: auto;
+            font-style: italic;
+            font-size: 1.1rem;
+        }
+        @media (max-width: 768px) {
+            .input-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            label {
+                min-width: auto;
+            }
+            input[type="date"] {
+                max-width: 300px;
+            }
+            table {
+                font-size: 0.85rem;
+            }
+            th, td {
+                padding: 0.8rem 0.5rem;
+            }
+        }
+        .error {
+            color: #d32f2f;
+            background: #ffebee;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>Your Age Across the Solar System</h1>
+    </header>
+
+    <section class="input-section">
+        <div class="input-group">
+            <label for="birthDate">Enter Date of Birth:</label>
+            <input type="date" id="birthDate" max="">
+            <button onclick="calculateAges()">Calculate Age</button>
+        </div>
+        <div id="errorMsg" class="error"></div>
+    </section>
+
+    <section class="results-section" id="resultsSection" style="display: none;">
+        <table id="resultsTable">
+            <thead>
+                <tr>
+                    <th>Planet</th>
+                    <th>Orbital Period (Days)</th>
+                    <th>Your Age (Years)</th>
+                    <th>Your Age (Days)</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </section>
+
+    <footer class="footer">
+        "Your age is just a number. On which planet you stand is the real question."
+    </footer>
+
+    <script>
+        // Set max date to today
+        document.getElementById('birthDate').max = new Date().toISOString().split('T')[0];
+
+        // Planetary orbital periods (NASA data)[web:21][web:22]
+        const planets = {
+            mercury: { name: 'Mercury', period: 87.97 },
+            venus: { name: 'Venus', period: 224.70 },
+            earth: { name: 'Earth', period: 365.26 },
+            mars: { name: 'Mars', period: 686.98 },
+            jupiter: { name: 'Jupiter', period: 4332.82 },
+            saturn: { name: 'Saturn', period: 10755.70 },
+            uranus: { name: 'Uranus', period: 30687.15 },
+            neptune: { name: 'Neptune', period: 60190.03 }
+        };
+
+        function calculateAges() {
+            const birthDateInput = document.getElementById('birthDate').value;
+            const errorMsg = document.getElementById('errorMsg');
+            const resultsSection = document.getElementById('resultsSection');
+            const tableBody = document.querySelector('#resultsTable tbody');
+
+            // Clear previous results
+            errorMsg.style.display = 'none';
+            tableBody.innerHTML = '';
+            resultsSection.style.display = 'none';
+
+            if (!birthDateInput) {
+                showError('Please enter your date of birth.');
+                return;
+            }
+
+            const birthDate = new Date(birthDateInput + 'T00:00:00');
+            const today = new Date();
+
+            if (birthDate > today) {
+                showError('Date of birth cannot be in the future!');
+                return;
+            }
+
+            // Calculate total days lived (JavaScript date diff)[web:26]
+            const timeDiff = today.getTime() - birthDate.getTime();
+            const totalEarthDaysAlive = Math.floor(timeDiff / (1000 * 3600 * 24));
+
+            // Populate table
+            Object.entries(planets).forEach(([key, planet]) => {
+                const ageInYears = totalEarthDaysAlive / planet.period;
+                const ageDays = Math.round(ageInYears * planet.period);
+
+                const row = tableBody.insertRow();
+                row.className = `planet-${key}`;
+                row.insertCell(0).textContent = planet.name;
+                row.insertCell(1).textContent = planet.period.toFixed(2);
+                row.insertCell(2).textContent = ageInYears.toFixed(2) + ' years';
+                row.insertCell(3).textContent = ageDays.toLocaleString() + ' days';
+            });
+
+            resultsSection.style.display = 'block';
+        }
+
+        function showError(message) {
+            const errorMsg = document.getElementById('errorMsg');
+            errorMsg.textContent = message;
+            errorMsg.style.display = 'block';
+        }
+ 
+        // Calculate on Enter key
+        document.getElementById('birthDate').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                calculateAges();
+            }
+        });
+    </script>
+</body>
+</html>
